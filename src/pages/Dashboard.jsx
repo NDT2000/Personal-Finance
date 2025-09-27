@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 const Dashboard = () => {
+  const navigate = useNavigate()
   const [transactions, setTransactions] = useState([
     { id: 1, description: 'Salary', amount: 5000, type: 'income', date: '2024-01-01' },
     { id: 2, description: 'Rent', amount: -1200, type: 'expense', date: '2024-01-02' },
@@ -47,9 +49,19 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
-        <header className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Personal Finance</h1>
-          <p className="text-gray-600">Track your income and expenses</p>
+        <header className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">Personal Finance</h1>
+            <p className="text-gray-600">Track your income and expenses</p>
+          </div>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => navigate('/login')}
+              className="btn btn-secondary"
+            >
+              Logout
+            </button>
+          </div>
         </header>
 
         {/* Balance Cards */}

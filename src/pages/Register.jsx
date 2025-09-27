@@ -1,22 +1,32 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 const Register = () => {
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    agreeTerms: false
   })
   const [errors, setErrors] = useState({})
   const [isLoading, setIsLoading] = useState(false)
+  
+  // Check if form is complete
+  const isFormComplete = formData.firstName && 
+                        formData.lastName && 
+                        formData.email && 
+                        formData.password && 
+                        formData.confirmPassword && 
+                        formData.agreeTerms
 
   const handleChange = (e) => {
-    const { name, value } = e.target
+    const { name, value, type, checked } = e.target
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? checked : value
     }))
     // Clear error when user starts typing
     if (errors[name]) {
@@ -57,7 +67,11 @@ const Register = () => {
     } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match'
     }
-    
+
+    if (!formData.agreeTerms) {
+      newErrors.agreeTerms = 'You must agree to the terms and conditions'
+    }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -70,14 +84,33 @@ const Register = () => {
     setIsLoading(true)
     
     try {
-      // TODO: Add actual registration logic here
-      console.log('Registration attempt:', formData)
+      // Database-only registration
+      const { ApiService } = await import('../services/apiService.js')
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      // Create new user data
+      const newUser = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        createdAt: new Date().toISOString()
+      }
+
+      // Save directly to database
+      const result = await ApiService.syncUserToDatabase(newUser)
       
-      // TODO: Handle successful registration
-      alert('Registration successful! (This is just a demo)')
+      if (result.success) {
+        // Store current user in session
+        localStorage.setItem('currentUser', JSON.stringify({
+          id: result.userId,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email
+        }))
+        navigate('/dashboard')
+      } else {
+        setErrors({ general: result.error || 'Registration failed. Please try again.' })
+      }
       
     } catch (error) {
       console.error('Registration error:', error)
@@ -217,31 +250,37 @@ const Register = () => {
               </div>
             </div>
 
-            <div className="flex items-center">
-              <input
-                id="agree-terms"
-                name="agree-terms"
-                type="checkbox"
-                required
-                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-              />
-              <label htmlFor="agree-terms" className="ml-2 block text-sm text-gray-900">
-                I agree to the{' '}
-                <a href="#" className="text-primary-600 hover:text-primary-500">
-                  Terms of Service
-                </a>{' '}
-                and{' '}
-                <a href="#" className="text-primary-600 hover:text-primary-500">
-                  Privacy Policy
-                </a>
-              </label>
-            </div>
+                  <div className="flex items-center">
+                    <input
+                      id="agree-terms"
+                      name="agreeTerms"
+                      type="checkbox"
+                      checked={formData.agreeTerms}
+                      onChange={handleChange}
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="agree-terms" className="ml-2 block text-sm text-gray-900">
+                      I agree to the{' '}
+                      <a href="#" className="text-primary-600 hover:text-primary-500">
+                        Terms of Service
+                      </a>{' '}
+                      and{' '}
+                      <a href="#" className="text-primary-600 hover:text-primary-500">
+                        Privacy Policy
+                      </a>
+                    </label>
+                  </div>
+                  {errors.agreeTerms && (
+                    <p className="mt-1 text-sm text-danger-600">{errors.agreeTerms}</p>
+                  )}
 
             <div>
               <button
                 type="submit"
-                disabled={isLoading}
-                className="btn btn-primary w-full flex justify-center items-center"
+                disabled={isLoading || !isFormComplete}
+                className={`btn w-full flex justify-center items-center ${
+                  isFormComplete ? 'btn-primary' : 'btn-primary opacity-50'
+                }`}
               >
                 {isLoading ? (
                   <>

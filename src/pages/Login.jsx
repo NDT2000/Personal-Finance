@@ -1,13 +1,17 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 const Login = () => {
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   })
   const [errors, setErrors] = useState({})
   const [isLoading, setIsLoading] = useState(false)
+  
+  // Check if form is complete
+  const isFormComplete = formData.email && formData.password
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -51,14 +55,17 @@ const Login = () => {
     setIsLoading(true)
     
     try {
-      // TODO: Add actual authentication logic here
-      console.log('Login attempt:', formData)
+      // Database authentication only
+      const { ApiService } = await import('../services/apiService.js')
+      const apiResult = await ApiService.authenticateUser(formData.email, formData.password)
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // TODO: Handle successful login
-      alert('Login successful! (This is just a demo)')
+      if (apiResult.success) {
+        // Store current user in session
+        localStorage.setItem('currentUser', JSON.stringify(apiResult.user))
+        navigate('/dashboard')
+      } else {
+        setErrors({ general: apiResult.message || 'Invalid email or password.' })
+      }
       
     } catch (error) {
       console.error('Login error:', error)
@@ -153,12 +160,14 @@ const Login = () => {
               </div>
             </div>
 
-            <div>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="btn btn-primary w-full flex justify-center items-center"
-              >
+                  <div>
+                    <button
+                      type="submit"
+                      disabled={isLoading || !isFormComplete}
+                      className={`btn w-full flex justify-center items-center ${
+                        isFormComplete ? 'btn-primary' : 'btn-primary opacity-50'
+                      }`}
+                    >
                 {isLoading ? (
                   <>
                     <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
