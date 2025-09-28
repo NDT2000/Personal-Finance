@@ -53,4 +53,113 @@ export class ApiService {
       return { success: false, error: error.message }
     }
   }
+
+  static async forgotPassword(email) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/forgot-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email })
+      })
+      const result = await response.json()
+      return result
+    } catch (error) {
+      return { success: false, error: error.message }
+    }
+  }
+
+  static async resetPassword(token, newPassword) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/reset-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ token, newPassword })
+      })
+      const result = await response.json()
+      return result
+    } catch (error) {
+      return { success: false, error: error.message }
+    }
+  }
+
+  // Account management
+  static async getUserAccounts(userId) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/accounts/${userId}`)
+      const result = await response.json()
+      return result
+    } catch (error) {
+      return { success: false, error: error.message }
+    }
+  }
+
+  static async createAccount(userId, accountType, accountName, initialBalance = 0) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/accounts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ userId, accountType, accountName, initialBalance })
+      })
+      const result = await response.json()
+      return result
+    } catch (error) {
+      return { success: false, error: error.message }
+    }
+  }
+
+  // Transaction management
+  static async getAccountTransactions(accountId) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/transactions/${accountId}`)
+      const result = await response.json()
+      return result
+    } catch (error) {
+      return { success: false, error: error.message }
+    }
+  }
+
+  static async createTransaction(accountId, amount, category, transactionType, description, transactionDate) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/transactions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ accountId, amount, category, transactionType, description, transactionDate })
+      })
+      const result = await response.json()
+      return result
+    } catch (error) {
+      return { success: false, error: error.message }
+    }
+  }
+
+  static async deleteTransaction(transactionId) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/transactions/${transactionId}`, {
+        method: 'DELETE'
+      })
+      const result = await response.json()
+      return result
+    } catch (error) {
+      return { success: false, error: error.message }
+    }
+  }
+
+  // Dashboard data
+  static async getDashboardData(userId) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/dashboard/${userId}`)
+      const result = await response.json()
+      return result
+    } catch (error) {
+      return { success: false, error: error.message }
+    }
+  }
 }
