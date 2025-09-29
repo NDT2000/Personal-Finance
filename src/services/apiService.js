@@ -162,4 +162,67 @@ export class ApiService {
       return { success: false, error: error.message }
     }
   }
+
+  // ML Categorization
+  static async getMLCategorization(descriptions) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/ml/categorize`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ descriptions })
+      })
+      const result = await response.json()
+      return result
+    } catch (error) {
+      return { success: false, error: error.message }
+    }
+  }
+
+  static async getMLModelInfo() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/ml/info`)
+      const result = await response.json()
+      return result
+    } catch (error) {
+      return { success: false, error: error.message }
+    }
+  }
+
+  static async updateMLPrediction(transactionId, mlCategory, mlConfidence, isMLPredicted) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/transactions/${transactionId}/ml`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ mlCategory, mlConfidence, isMLPredicted })
+      })
+      const result = await response.json()
+      return result
+    } catch (error) {
+      return { success: false, error: error.message }
+    }
+  }
+
+  static async getMLReviewTransactions() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/ml/review`)
+      const result = await response.json()
+      return result
+    } catch (error) {
+      return { success: false, error: error.message }
+    }
+  }
+
+  static async testMLModel() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/ml/test`)
+      const result = await response.json()
+      return result
+    } catch (error) {
+      return { success: false, error: error.message }
+    }
+  }
 }
