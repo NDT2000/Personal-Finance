@@ -5,6 +5,7 @@ import SpendingCategoriesChart from '../components/Charts/SpendingCategoriesChar
 import MonthlyTrendsChart from '../components/Charts/MonthlyTrendsChart'
 import FinancialSummary from '../components/Charts/FinancialSummary'
 import IncomeInsights from '../components/Charts/IncomeInsights'
+import MLTestComponent from '../components/MLTestComponent'
 
 const Dashboard = () => {
   const navigate = useNavigate()
@@ -193,6 +194,11 @@ const Dashboard = () => {
               </Link>
             </div>
           </div>
+        </div>
+
+        {/* ML Testing Section */}
+        <div className="mb-8">
+          <MLTestComponent />
         </div>
 
         {/* Charts Section */}
