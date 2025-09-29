@@ -1,13 +1,18 @@
-# Personal-Finance
+# Personal Finance Management System
 
-A React-based personal finance management application with TiDB Cloud database integration, built with Vite and Tailwind CSS.
+A comprehensive React-based personal finance management application with machine learning-powered expense categorization, built with modern web technologies and TiDB Cloud database integration.
 
-## 🚀 Getting Started
+## Overview
+
+This application provides a complete personal finance management solution with intelligent expense categorization using machine learning algorithms. The system features a modern React frontend, Express.js backend, and MySQL-compatible database integration.
+
+## Getting Started
 
 ### Prerequisites
 - Node.js (v16 or higher)
-- npm or yarn
-- TiDB Cloud account (for database)
+- npm or yarn package manager
+- TiDB Cloud account for database hosting
+- Modern web browser with JavaScript enabled
 
 ### Installation & Setup
 
@@ -22,22 +27,38 @@ A React-based personal finance management application with TiDB Cloud database i
    npm install
    ```
 
-3. **Start the backend server**
+3. **Configure environment variables**
+   Create a `.env` file in the root directory with your database credentials:
+   ```env
+   DB_HOST=your-tidb-host
+   DB_USER=your-username
+   DB_PASSWORD=your-password
+   DB_NAME=personal_finance
+   DB_PORT=4000
+   ```
+
+4. **Initialize the database**
+   ```bash
+   node src/scripts/createDatabaseTables.js
+   node src/scripts/updateDatabaseForML.js
+   ```
+
+5. **Start the backend server**
    ```bash
    npm run server
    ```
    This starts the database API server on `http://localhost:3001`
 
-4. **Start the frontend (in a new terminal)**
+6. **Start the frontend (in a new terminal)**
    ```bash
    npm run dev
    ```
-   This starts the React app on `http://localhost:3000`
+   This starts the React application on `http://localhost:3000`
 
-5. **Access the application**
-   - Open your browser and go to `http://localhost:3000`
-   - You'll be redirected to the login page
+7. **Access the application**
+   - Open your browser and navigate to `http://localhost:3000`
    - Register a new account or login with existing credentials
+   - Begin managing your personal finances
 
 ### Alternative: Run Both Servers Together
 ```bash
@@ -45,166 +66,193 @@ npm run dev:full
 ```
 This command runs both the backend server and frontend development server simultaneously.
 
-## 🏗️ Architecture
+## Architecture
 
-- **Frontend**: React with Vite and Tailwind CSS
-- **Backend**: Express.js API server
-- **Database**: TiDB Cloud (MySQL-compatible)
-- **Authentication**: Database-based with session management
+- **Frontend**: React 18 with Vite build tool and Tailwind CSS
+- **Backend**: Express.js API server with MySQL integration
+- **Database**: TiDB Cloud (MySQL-compatible cloud database)
+- **Authentication**: Database-based session management
+- **Machine Learning**: JavaScript-based ML service for expense categorization
 
-## 📁 Project Structure
+## Project Structure
 
 ```
-├── server.js                 # Backend API server
+├── server.js                     # Backend API server
 ├── src/
-│   ├── pages/               # React pages
-│   │   ├── Login.jsx        # Login page
-│   │   ├── Register.jsx     # Registration page
-│   │   └── Dashboard.jsx    # Main dashboard
-│   ├── services/
-│   │   └── apiService.js    # API service for database operations
-│   └── main.jsx             # React entry point
+│   ├── components/              # React components
+│   │   ├── Charts/             # Data visualization components
+│   │   └── MLTestComponent.jsx   # ML testing interface
+│   ├── pages/                  # Application pages
+│   │   ├── Login.jsx          # User authentication
+│   │   ├── Register.jsx       # User registration
+│   │   ├── Dashboard.jsx      # Main financial dashboard
+│   │   └── Profile.jsx        # User profile management
+│   ├── services/              # API and business logic
+│   │   ├── apiService.js     # Database API integration
+│   │   ├── authService.js    # Authentication services
+│   │   ├── emailService.js   # Email notification services
+│   │   └── mlService.js      # Machine learning service
+│   ├── scripts/              # Database management scripts
+│   │   ├── createDatabaseTables.js
+│   │   └── updateDatabaseForML.js
+│   └── main.jsx              # React application entry point
+├── test-ml.js                # ML service testing script
+└── package.json             # Project dependencies and scripts
 ```
 
-## 🔧 Available Scripts
+## Available Scripts
 
 - `npm run dev` - Start frontend development server
 - `npm run server` - Start backend API server
-- `npm run dev:full` - Start both servers together
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
+- `npm run dev:full` - Start both servers simultaneously
+- `npm run build` - Build application for production
+- `npm run preview` - Preview production build locally
 
-## 🎯 Features
+## Core Features
 
-- User registration and authentication
-- Password reset functionality with email support
-- Modern, responsive dashboard with beautiful UI
-- **Interactive data visualizations** with Chart.js
-- **Enhanced income tracking** with categories and insights
-- **Multi-account management** with different account types
-- **Database-driven transactions** with proper data persistence
-- User profile management
-- Database integration with TiDB Cloud
-- Responsive design with Tailwind CSS
-- Form validation and error handling
-- Session management
+### User Management
+- Secure user registration and authentication
+- Password reset functionality with email notifications
+- User profile management with editable information
+- Session-based authentication with automatic logout
 
-## 🔐 Password Reset
+### Financial Management
+- Multi-account support (checking, savings, credit, investment, cash)
+- Real-time balance tracking and updates
+- Comprehensive transaction history with search and filtering
+- Income and expense categorization with smart suggestions
 
-The application includes a complete password reset flow:
+### Machine Learning Integration
+- **Intelligent Expense Categorization**: Automatic categorization using TF-IDF pattern matching
+- **Confidence Scoring**: ML predictions include confidence levels for manual review
+- **Smart Suggestions**: Real-time category suggestions as users type transaction descriptions
+- **Learning System**: Model improves through user feedback and corrections
 
-1. **Forgot Password**: Users can request a password reset by entering their email
-2. **Email Notification**: Reset instructions are sent to the user's email (currently logged to console)
-3. **Reset Password**: Users can set a new password using the reset token
-4. **Token Security**: Reset tokens expire after 1 hour for security
+### Data Visualization
+- Interactive financial charts and graphs
+- Income vs expense comparisons
+- Spending category breakdowns with pie charts
+- Monthly trend analysis with line graphs
+- Financial summary cards with key metrics
 
-### Password Reset Flow:
-- Visit `/forgot-password` to request a reset
-- Check the server console for the reset link (in development)
-- Use the reset link to set a new password at `/reset-password`
+### Account Management
+- Multiple account types with individual balance tracking
+- Account creation and management interface
+- Transaction linking to specific accounts
+- Real-time balance updates across all accounts
 
-## 🎨 Modern UI Features
+## Machine Learning Features
 
-The application now features a modern, responsive design with:
+### Expense Categorization System
+The application includes a sophisticated ML-powered expense categorization system:
 
-- **Gradient backgrounds** and smooth animations
-- **Card-based layouts** with hover effects and shadows
-- **Modern buttons** with gradient backgrounds and hover animations
-- **Icon integration** using Heroicons for better visual appeal
-- **Responsive design** that works on all device sizes
-- **Profile management** with user information editing
-- **Beautiful transaction cards** with color-coded income/expense indicators
+**Supported Categories:**
+- Housing (rent, mortgage, property-related expenses)
+- Food & Dining (groceries, restaurants, food delivery)
+- Transportation (gas, rideshare, public transit, car maintenance)
+- Utilities (electricity, water, internet, phone bills)
+- Healthcare (medical visits, pharmacy, insurance)
+- Entertainment (subscriptions, movies, games, events)
+- Shopping (retail purchases, online shopping, clothing)
+- Other (uncategorized expenses)
 
-### Navigation:
-- **Dashboard** (`/dashboard`) - Main financial overview with interactive charts
-- **Profile** (`/profile`) - User account management
-- **Login/Register** - Authentication pages
-- **Password Reset** - Forgot password functionality
+**ML Algorithm Features:**
+- TF-IDF-based pattern matching for accurate categorization
+- Confidence scoring (0-100%) for each prediction
+- Automatic threshold-based manual review system
+- Batch processing capabilities for multiple transactions
+- Real-time prediction API endpoints
 
-## 📊 Data Visualizations
+**Model Performance:**
+- Target accuracy: 80%+ on common transaction types
+- Response time: <100ms per prediction
+- Confidence threshold: 70% for auto-acceptance
+- Training data: 50+ synthetic examples with keyword patterns
 
-The dashboard now includes comprehensive financial analytics with interactive charts:
+## Database Structure
 
-### 📈 **Chart Types**
-- **Income vs Expenses Bar Chart** - Monthly comparison of income and expenses
-- **Spending Categories Pie Chart** - Breakdown of expenses by category
-- **Monthly Trends Line Chart** - Financial trends over time with balance tracking
-- **Financial Summary Cards** - Key metrics including savings rate and averages
+### Core Tables
+- **Users**: User accounts with authentication credentials and preferences
+- **Accounts**: Multiple account types with balance tracking
+- **Transactions**: Financial transactions linked to specific accounts
+- **Password Reset Tokens**: Secure password reset functionality
 
-### 🎨 **Visual Features**
-- **Interactive tooltips** with detailed information
-- **Responsive design** that works on all screen sizes
-- **Color-coded data** for easy interpretation
-- **Smooth animations** and hover effects
-- **Real-time updates** when transactions are added/modified
+### Machine Learning Tables
+- **ml_training_data**: Training examples for ML model improvement
+- **ml_models**: Model metadata and performance tracking
+- **ML-enhanced transactions**: Additional columns for ML predictions and confidence scores
 
-### 📋 **Smart Categorization**
-The system automatically categorizes both income and expenses:
+### Data Integrity
+- Foreign key relationships ensuring data consistency
+- Automatic balance updates with transaction changes
+- Transaction history preservation with audit trails
+- Secure password storage with proper hashing
 
-**Income Categories:**
-- **Salary** (wages, pay, salary)
-- **Freelance** (contract work, consulting)
-- **Bonus** (incentives, bonuses)
-- **Investment** (returns, dividends)
-- **Business** (profit, revenue)
-- **Other** (uncategorized income)
+## API Endpoints
 
-**Expense Categories:**
-- **Housing** (rent, mortgage, utilities)
-- **Food & Dining** (groceries, restaurants)
-- **Transportation** (gas, car, rideshare)
-- **Healthcare** (medical, pharmacy)
-- **Entertainment** (movies, games, subscriptions)
-- **Shopping** (clothes, fashion)
-- **Other** (uncategorized expenses)
+### Authentication
+- `POST /api/auth` - User login
+- `POST /api/sync-user` - User registration
+- `POST /api/forgot-password` - Password reset request
+- `POST /api/reset-password` - Password reset completion
 
-## 💰 Enhanced Income Features
+### Financial Management
+- `GET /api/accounts/:userId` - Get user accounts
+- `POST /api/accounts` - Create new account
+- `GET /api/transactions/:accountId` - Get account transactions
+- `POST /api/transactions` - Create new transaction
+- `DELETE /api/transactions/:transactionId` - Delete transaction
 
-The application now includes comprehensive income tracking and management:
+### Machine Learning
+- `POST /api/ml/categorize` - Get ML category predictions
+- `GET /api/ml/info` - Get model information
+- `PUT /api/transactions/:id/ml` - Update transaction with ML prediction
+- `GET /api/ml/review` - Get transactions needing manual review
+- `GET /api/ml/test` - Test ML model performance
 
-### 🎯 **Income Management**
-- **Visual Transaction Toggle** - Easy switching between income and expense entry
-- **Income Categories** - Organized income tracking by source type
-- **Quick Add Income Button** - One-click access to add income transactions
-- **Smart Placeholders** - Context-aware input suggestions
+### Dashboard
+- `GET /api/dashboard/:userId` - Get comprehensive dashboard data
 
-### 📊 **Income Analytics**
-- **Income Insights Dashboard** - Dedicated income analytics section
-- **Total Income Tracking** - All-time earnings summary
-- **Average Monthly Income** - Calculated from transaction history
-- **Top Income Source** - Identifies primary income category
-- **Income Growth Tracking** - Month-over-month growth analysis
+## Security Features
 
-### 🎨 **Enhanced UX**
-- **Color-coded Interface** - Green for income, red for expenses
-- **Dynamic Button Text** - Changes based on transaction type
-- **Category Dropdowns** - Separate categories for income vs expenses
-- **Visual Feedback** - Icons and colors for better user experience
+- Password hashing using bcrypt
+- Secure session management
+- Password reset tokens with expiration
+- SQL injection prevention with parameterized queries
+- Input validation and sanitization
+- CORS configuration for API security
 
-## 🏦 Database Structure
+## Development and Testing
 
-The application now uses a comprehensive database structure to store all user data:
+### ML Service Testing
+```bash
+node test-ml.js
+```
+This script tests the machine learning service functionality and validates prediction accuracy.
 
-### 📊 **Database Tables**
-- **Users** - User accounts with authentication and preferences
-- **Accounts** - Multiple account types (checking, savings, credit, investment, cash)
-- **Transactions** - All financial transactions linked to accounts
-- **Password Reset Tokens** - Secure password reset functionality
+### Database Management
+```bash
+node src/scripts/createDatabaseTables.js
+node src/scripts/updateDatabaseForML.js
+```
+These scripts initialize the database schema and ML-specific tables.
 
-### 🏗️ **Account Management**
-- **Multiple Account Types** - Checking, Savings, Credit Card, Investment, Cash
-- **Account Selection** - Choose which account to add transactions to
-- **Balance Tracking** - Real-time balance updates with each transaction
-- **Account Creation** - Easy account setup with initial balance
+### API Testing
+The application includes comprehensive API endpoints for testing all functionality, including ML predictions and financial data management.
 
-### 💾 **Data Persistence**
-- **Database Storage** - All data stored in TiDB Cloud database
-- **Transaction History** - Complete transaction history with account tracking
-- **Real-time Updates** - Account balances update automatically
-- **Data Integrity** - Proper foreign key relationships and constraints
+## Performance Considerations
 
-### 🔄 **Transaction System**
-- **Account-linked Transactions** - All transactions tied to specific accounts
-- **Automatic Balance Updates** - Account balances update with each transaction
-- **Transaction Categories** - Organized by income/expense categories
-- **Date Tracking** - Full transaction date and time tracking
+- Optimized database queries with proper indexing
+- Efficient ML prediction algorithms with caching
+- Responsive UI with minimal re-renders
+- Real-time updates without full page refreshes
+- Batch processing for multiple ML predictions
+
+## Future Enhancements
+
+- Bank API integration for automatic transaction import
+- Advanced ML models with neural networks
+- Investment portfolio tracking
+- Bill payment automation
+- Financial goal setting and tracking
+- Multi-user family account management
