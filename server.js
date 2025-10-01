@@ -414,6 +414,118 @@ app.get('/api/dashboard/:userId', async (req, res) => {
   }
 })
 
+// ML Categorization endpoints
+app.post('/api/ml/categorize', async (req, res) => {
+  try {
+    const { descriptions } = req.body;
+    
+    // Import ML service
+    const { default: mlService } = await import('./src/services/mlService.js');
+    
+    const predictions = mlService.predictBatch(descriptions);
+    
+    res.json({
+      success: true,
+      predictions: predictions
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Get ML model info
+app.get('/api/ml/info', async (req, res) => {
+  try {
+    const { default: mlService } = await import('./src/services/mlService.js');
+    const info = mlService.getModelInfo();
+    
+    res.json({
+      success: true,
+      model: info
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Update transaction with ML prediction
+app.put('/api/transactions/:transactionId/ml', async (req, res) => {
+  try {
+    const { transactionId } = req.params;
+    const { mlCategory, mlConfidence, isMLPredicted } = req.body;
+    const connection = await mysql.createConnection(dbConfig);
+    
+    await connection.execute(
+      'UPDATE transactions SET ml_category = ?, ml_confidence = ?, is_ml_predicted = ? WHERE id = ?',
+      [mlCategory, mlConfidence, isMLPredicted, transactionId]
+    );
+    
+    await connection.end();
+    
+    res.json({
+      success: true,
+      message: 'ML prediction updated successfully'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Get transactions needing manual review
+app.get('/api/ml/review', async (req, res) => {
+  try {
+    const connection = await mysql.createConnection(dbConfig);
+    
+    const [transactions] = await connection.execute(
+      `SELECT t.id, t.description, t.amount, t.ml_category, t.ml_confidence, t.transaction_date, a.account_name
+       FROM transactions t
+       JOIN accounts a ON t.account_id = a.id
+       WHERE t.ml_confidence < 0.7 AND t.is_ml_predicted = TRUE
+       ORDER BY t.transaction_date DESC
+       LIMIT 50`
+    );
+    
+    await connection.end();
+    
+    res.json({
+      success: true,
+      transactions: transactions
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Test ML model endpoint
+app.get('/api/ml/test', async (req, res) => {
+  try {
+    const { default: mlService } = await import('./src/services/mlService.js');
+    const testResults = mlService.testModel();
+    
+    res.json({
+      success: true,
+      testResults: testResults
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({
