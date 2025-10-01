@@ -11,6 +11,7 @@ const Dashboard = () => {
   const [user, setUser] = useState(null)
   const [accounts, setAccounts] = useState([])
   const [transactions, setTransactions] = useState([])
+  const [selectedAccountId, setSelectedAccountId] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
 
   // Load user data and dashboard data
