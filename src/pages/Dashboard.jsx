@@ -6,6 +6,7 @@ import MonthlyTrendsChart from '../components/Charts/MonthlyTrendsChart'
 import FinancialSummary from '../components/Charts/FinancialSummary'
 import IncomeInsights from '../components/Charts/IncomeInsights'
 import MLTestComponent from '../components/MLTestComponent'
+import GoalsDashboard from '../components/Goals/GoalsDashboard'
 
 const Dashboard = () => {
   const navigate = useNavigate()
@@ -195,6 +196,11 @@ const Dashboard = () => {
               </Link>
             </div>
           </div>
+        </div>
+
+        {/* Financial Goals Section */}
+        <div className="mb-8">
+          <GoalsDashboard userId={user.id} />
         </div>
 
         {/* ML Testing Section */}
