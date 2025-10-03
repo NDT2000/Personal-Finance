@@ -672,6 +672,280 @@ app.post('/api/reset-password', async (req, res) => {
   }
 })
 
+// ==================== GOALS API ENDPOINTS ====================
+
+// Get user's goals
+app.get('/api/goals/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params
+    const connection = await mysql.createConnection(dbConfig)
+    
+    const [goals] = await connection.execute(
+      `SELECT id, goal_type, title, description, target_amount, current_amount, deadline, priority, status, created_at, updated_at,
+       CASE 
+         WHEN deadline IS NULL THEN NULL
+         WHEN deadline < CURDATE() THEN 'overdue'
+         WHEN deadline <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN 'due_soon'
+         ELSE 'on_track'
+       END as deadline_status,
+       CASE 
+         WHEN target_amount = 0 THEN 0
+         ELSE ROUND((current_amount / target_amount) * 100, 2)
+       END as progress_percentage
+       FROM goals 
+       WHERE user_id = ? 
+       ORDER BY priority DESC, deadline ASC, created_at DESC`,
+      [userId]
+    )
+    
+    await connection.end()
+    
+    res.json({
+      success: true,
+      goals: goals
+    })
+    
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    })
+  }
+})
+
+// Create new goal
+app.post('/api/goals', async (req, res) => {
+  try {
+    const { userId, goalType, title, description, targetAmount, deadline, priority = 'medium' } = req.body
+    const connection = await mysql.createConnection(dbConfig)
+    
+    const [result] = await connection.execute(
+      'INSERT INTO goals (user_id, goal_type, title, description, target_amount, deadline, priority) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [userId, goalType, title, description, targetAmount, deadline, priority]
+    )
+    
+    await connection.end()
+    
+    res.json({
+      success: true,
+      goalId: result.insertId,
+      message: 'Goal created successfully'
+    })
+    
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    })
+  }
+})
+
+// Update goal
+app.put('/api/goals/:goalId', async (req, res) => {
+  try {
+    const { goalId } = req.params
+    const { title, description, targetAmount, deadline, priority, status } = req.body
+    const connection = await mysql.createConnection(dbConfig)
+    
+    const updateFields = []
+    const updateValues = []
+    
+    if (title !== undefined) {
+      updateFields.push('title = ?')
+      updateValues.push(title)
+    }
+    if (description !== undefined) {
+      updateFields.push('description = ?')
+      updateValues.push(description)
+    }
+    if (targetAmount !== undefined) {
+      updateFields.push('target_amount = ?')
+      updateValues.push(targetAmount)
+    }
+    if (deadline !== undefined) {
+      updateFields.push('deadline = ?')
+      updateValues.push(deadline)
+    }
+    if (priority !== undefined) {
+      updateFields.push('priority = ?')
+      updateValues.push(priority)
+    }
+    if (status !== undefined) {
+      updateFields.push('status = ?')
+      updateValues.push(status)
+    }
+    
+    if (updateFields.length === 0) {
+      await connection.end()
+      return res.json({
+        success: false,
+        error: 'No fields to update'
+      })
+    }
+    
+    updateValues.push(goalId)
+    
+    await connection.execute(
+      `UPDATE goals SET ${updateFields.join(', ')} WHERE id = ?`,
+      updateValues
+    )
+    
+    await connection.end()
+    
+    res.json({
+      success: true,
+      message: 'Goal updated successfully'
+    })
+    
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    })
+  }
+})
+
+// Delete goal
+app.delete('/api/goals/:goalId', async (req, res) => {
+  try {
+    const { goalId } = req.params
+    const connection = await mysql.createConnection(dbConfig)
+    
+    await connection.execute(
+      'DELETE FROM goals WHERE id = ?',
+      [goalId]
+    )
+    
+    await connection.end()
+    
+    res.json({
+      success: true,
+      message: 'Goal deleted successfully'
+    })
+    
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    })
+  }
+})
+
+// Add transaction to goal
+app.post('/api/goals/:goalId/transactions', async (req, res) => {
+  try {
+    const { goalId } = req.params
+    const { amount, transactionType = 'contribution', transactionDate, description } = req.body
+    const connection = await mysql.createConnection(dbConfig)
+    
+    // Start transaction
+    await connection.beginTransaction()
+    
+    try {
+      // Add goal transaction
+      const [result] = await connection.execute(
+        'INSERT INTO goal_transactions (goal_id, amount, transaction_type, transaction_date, description) VALUES (?, ?, ?, ?, ?)',
+        [goalId, amount, transactionType, transactionDate, description]
+      )
+      
+      // Update goal current amount
+      const balanceChange = transactionType === 'contribution' ? amount : -amount
+      await connection.execute(
+        'UPDATE goals SET current_amount = current_amount + ? WHERE id = ?',
+        [balanceChange, goalId]
+      )
+      
+      // Record progress
+      const [goalData] = await connection.execute(
+        'SELECT target_amount, current_amount FROM goals WHERE id = ?',
+        [goalId]
+      )
+      
+      if (goalData.length > 0) {
+        const goal = goalData[0]
+        const progressPercentage = goal.target_amount > 0 ? (goal.current_amount / goal.target_amount) * 100 : 0
+        
+        await connection.execute(
+          'INSERT INTO goal_progress (goal_id, progress_amount, progress_percentage, recorded_date) VALUES (?, ?, ?, ?)',
+          [goalId, goal.current_amount, progressPercentage, transactionDate]
+        )
+      }
+      
+      await connection.commit()
+      
+      res.json({
+        success: true,
+        transactionId: result.insertId,
+        message: 'Goal transaction added successfully'
+      })
+      
+    } catch (error) {
+      await connection.rollback()
+      throw error
+    }
+    
+    await connection.end()
+    
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    })
+  }
+})
+
+// Get goal transactions
+app.get('/api/goals/:goalId/transactions', async (req, res) => {
+  try {
+    const { goalId } = req.params
+    const connection = await mysql.createConnection(dbConfig)
+    
+    const [transactions] = await connection.execute(
+      'SELECT id, amount, transaction_type, transaction_date, description, created_at FROM goal_transactions WHERE goal_id = ? ORDER BY transaction_date DESC, created_at DESC',
+      [goalId]
+    )
+    
+    await connection.end()
+    
+    res.json({
+      success: true,
+      transactions: transactions
+    })
+    
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    })
+  }
+})
+
+// Get goal progress timeline
+app.get('/api/goals/:goalId/progress', async (req, res) => {
+  try {
+    const { goalId } = req.params
+    const connection = await mysql.createConnection(dbConfig)
+    
+    const [progress] = await connection.execute(
+      'SELECT progress_amount, progress_percentage, recorded_date FROM goal_progress WHERE goal_id = ? ORDER BY recorded_date ASC',
+      [goalId]
+    )
+    
+    await connection.end()
+    
+    res.json({
+      success: true,
+      progress: progress
+    })
+    
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    })
+  }
+})
+
 
 app.listen(PORT, () => {
   console.log(`Database API server running on http://localhost:${PORT}`)

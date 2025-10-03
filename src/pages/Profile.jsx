@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import AccountManager from '../components/AccountManager'
+import GoalsDashboard from '../components/Goals/GoalsDashboard'
 
 const Profile = () => {
   const navigate = useNavigate()
@@ -29,7 +30,7 @@ const Profile = () => {
     type: 'expense',
     category: ''
   })
-  const [activeTab, setActiveTab] = useState('profile') // 'profile' or 'transactions'
+  const [activeTab, setActiveTab] = useState('profile') // 'profile', 'transactions', or 'goals'
 
   useEffect(() => {
     // Get user data from localStorage
@@ -62,6 +63,8 @@ const Profile = () => {
     const tab = searchParams.get('tab')
     if (tab === 'transactions') {
       setActiveTab('transactions')
+    } else if (tab === 'goals') {
+      setActiveTab('goals')
     }
   }, [navigate, searchParams])
 
@@ -304,6 +307,16 @@ const Profile = () => {
             }`}
           >
             Manage Transactions
+          </button>
+          <button
+            onClick={() => setActiveTab('goals')}
+            className={`flex-1 py-3 px-6 rounded-lg font-medium transition-all duration-200 ${
+              activeTab === 'goals'
+                ? 'bg-white text-indigo-600 shadow-md'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            Financial Goals
           </button>
         </div>
 
@@ -753,6 +766,12 @@ const Profile = () => {
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {activeTab === 'goals' && (
+          <div className="space-y-8">
+            <GoalsDashboard userId={user.id} />
           </div>
         )}
       </div>
