@@ -16,6 +16,7 @@ export class GoalsService {
   // Create new goal
   static async createGoal(goalData) {
     try {
+      console.log('Sending goal data:', goalData)
       const response = await fetch(`${API_BASE_URL}/goals`, {
         method: 'POST',
         headers: {
@@ -23,9 +24,15 @@ export class GoalsService {
         },
         body: JSON.stringify(goalData)
       })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
       const result = await response.json()
       return result
     } catch (error) {
+      console.error('Error creating goal:', error)
       return { success: false, error: error.message }
     }
   }
@@ -63,6 +70,7 @@ export class GoalsService {
   // Add transaction to goal
   static async addGoalTransaction(goalId, transactionData) {
     try {
+      console.log('Sending transaction data:', transactionData)
       const response = await fetch(`${API_BASE_URL}/goals/${goalId}/transactions`, {
         method: 'POST',
         headers: {
@@ -70,9 +78,15 @@ export class GoalsService {
         },
         body: JSON.stringify(transactionData)
       })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
       const result = await response.json()
       return result
     } catch (error) {
+      console.error('Error adding goal transaction:', error)
       return { success: false, error: error.message }
     }
   }
@@ -135,45 +149,15 @@ export class GoalsService {
     }
   }
 
-  // Helper function to get goal type icon
-  static getGoalTypeIcon(goalType) {
+  // Helper function to get goal type icon (returns icon name for components to use)
+  static getGoalTypeIconName(goalType) {
     switch (goalType) {
-      case 'savings':
-        return (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-          </svg>
-        )
-      case 'investment':
-        return (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-          </svg>
-        )
-      case 'debt_payoff':
-        return (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-          </svg>
-        )
-      case 'purchase':
-        return (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-          </svg>
-        )
-      case 'income':
-        return (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-          </svg>
-        )
-      default:
-        return (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        )
+      case 'savings': return 'savings'
+      case 'investment': return 'investment'
+      case 'debt_payoff': return 'debt_payoff'
+      case 'purchase': return 'purchase'
+      case 'income': return 'income'
+      default: return 'default'
     }
   }
 

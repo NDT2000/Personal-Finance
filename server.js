@@ -12,6 +12,18 @@ const PORT = 3001
 app.use(cors())
 app.use(express.json())
 
+// Error handling middleware for JSON parsing
+app.use((error, req, res, next) => {
+  if (error instanceof SyntaxError && error.status === 400 && 'body' in error) {
+    console.error('JSON parsing error:', error.message);
+    return res.status(400).json({
+      success: false,
+      error: 'Invalid JSON format'
+    });
+  }
+  next();
+})
+
 
 // Database configuration (working config from our test)
 const dbConfig = {
@@ -716,6 +728,7 @@ app.get('/api/goals/:userId', async (req, res) => {
 // Create new goal
 app.post('/api/goals', async (req, res) => {
   try {
+    console.log('Creating goal with data:', req.body)
     const { userId, goalType, title, description, targetAmount, deadline, priority = 'medium' } = req.body
     const connection = await mysql.createConnection(dbConfig)
     
@@ -834,6 +847,7 @@ app.delete('/api/goals/:goalId', async (req, res) => {
 // Add transaction to goal
 app.post('/api/goals/:goalId/transactions', async (req, res) => {
   try {
+    console.log('Adding goal transaction with data:', req.body)
     const { goalId } = req.params
     const { amount, transactionType = 'contribution', transactionDate, description } = req.body
     const connection = await mysql.createConnection(dbConfig)

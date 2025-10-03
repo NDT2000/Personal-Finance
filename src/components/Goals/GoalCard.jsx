@@ -1,17 +1,60 @@
 import React, { useState } from 'react'
 import { GoalsService } from '../../services/goalsService'
 import AddTransactionModal from './AddTransactionModal'
+import GoalDetailView from './GoalDetailView'
 
 const GoalCard = ({ goal, onUpdate, onDelete, onAddTransaction }) => {
   const [showEditModal, setShowEditModal] = useState(false)
   const [showTransactionModal, setShowTransactionModal] = useState(false)
+  const [showDetailView, setShowDetailView] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
   const formattedGoal = GoalsService.formatGoalData(goal)
   const statusColor = GoalsService.getGoalStatusColor(goal)
   const priorityColor = GoalsService.getGoalPriorityColor(goal.priority)
   const typeColor = GoalsService.getGoalTypeColor(goal.goal_type)
-  const typeIcon = GoalsService.getGoalTypeIcon(goal.goal_type)
+  const getGoalTypeIcon = (goalType) => {
+    switch (goalType) {
+      case 'savings':
+        return (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+          </svg>
+        )
+      case 'investment':
+        return (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+          </svg>
+        )
+      case 'debt_payoff':
+        return (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+          </svg>
+        )
+      case 'purchase':
+        return (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          </svg>
+        )
+      case 'income':
+        return (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+          </svg>
+        )
+      default:
+        return (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        )
+    }
+  }
+
+  const typeIcon = getGoalTypeIcon(goal.goal_type)
 
   const handleStatusChange = async (newStatus) => {
     setIsLoading(true)
@@ -132,36 +175,51 @@ const GoalCard = ({ goal, onUpdate, onDelete, onAddTransaction }) => {
       </div>
 
       {/* Actions */}
-      <div className="flex space-x-2">
-        <button
-          onClick={handleAddTransaction}
-          className="flex-1 flex items-center justify-center space-x-2 px-3 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-all duration-200 text-sm font-medium"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-          <span>Add Money</span>
-        </button>
-        
-        {goal.status === 'active' && (
+      <div className="space-y-2">
+        <div className="flex space-x-2">
           <button
-            onClick={() => handleStatusChange('completed')}
-            disabled={isLoading}
-            className="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all duration-200 text-sm font-medium disabled:opacity-50"
+            onClick={() => setShowDetailView(true)}
+            className="flex-1 flex items-center justify-center space-x-2 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all duration-200 text-sm font-medium"
           >
-            {isLoading ? '...' : 'Complete'}
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <span>View Details</span>
           </button>
-        )}
-        
-        {goal.status === 'completed' && (
+          
           <button
-            onClick={() => handleStatusChange('active')}
-            disabled={isLoading}
-            className="px-3 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-all duration-200 text-sm font-medium disabled:opacity-50"
+            onClick={handleAddTransaction}
+            className="flex-1 flex items-center justify-center space-x-2 px-3 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-all duration-200 text-sm font-medium"
           >
-            {isLoading ? '...' : 'Reopen'}
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            <span>Add Money</span>
           </button>
-        )}
+        </div>
+        
+        <div className="flex space-x-2">
+          {goal.status === 'active' && (
+            <button
+              onClick={() => handleStatusChange('completed')}
+              disabled={isLoading}
+              className="flex-1 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all duration-200 text-sm font-medium disabled:opacity-50"
+            >
+              {isLoading ? '...' : 'Complete'}
+            </button>
+          )}
+          
+          {goal.status === 'completed' && (
+            <button
+              onClick={() => handleStatusChange('active')}
+              disabled={isLoading}
+              className="flex-1 px-3 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-all duration-200 text-sm font-medium disabled:opacity-50"
+            >
+              {isLoading ? '...' : 'Reopen'}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Add Transaction Modal */}
@@ -170,6 +228,17 @@ const GoalCard = ({ goal, onUpdate, onDelete, onAddTransaction }) => {
           goal={goal}
           onClose={() => setShowTransactionModal(false)}
           onSubmit={onAddTransaction}
+        />
+      )}
+
+      {/* Goal Detail View */}
+      {showDetailView && (
+        <GoalDetailView
+          goal={goal}
+          onClose={() => setShowDetailView(false)}
+          onUpdate={onUpdate}
+          onDelete={onDelete}
+          onAddTransaction={onAddTransaction}
         />
       )}
     </div>

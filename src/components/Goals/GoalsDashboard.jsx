@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { GoalsService } from '../../services/goalsService'
 import GoalCard from './GoalCard'
 import CreateGoalModal from './CreateGoalModal'
+import GoalsOverview from './GoalsOverview'
 
 const GoalsDashboard = ({ userId }) => {
   const [goals, setGoals] = useState([])
@@ -154,6 +155,13 @@ const GoalsDashboard = ({ userId }) => {
             : 'bg-red-50 border border-red-200 text-red-600'
         }`}>
           {message}
+        </div>
+      )}
+
+      {/* Goals Overview */}
+      {goals.length > 0 && (
+        <div className="mb-8">
+          <GoalsOverview goals={goals} />
         </div>
       )}
 
