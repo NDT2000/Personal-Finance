@@ -3,23 +3,33 @@ import { GoalsService } from '../../services/goalsService'
 import GoalCard from './GoalCard'
 import CreateGoalModal from './CreateGoalModal'
 import GoalsOverview from './GoalsOverview'
+import BankConnections from './BankConnections'
+import InvestmentTracker from './InvestmentTracker'
+import BillAutomation from './BillAutomation'
 
 const GoalsDashboard = ({ userId }) => {
   const [goals, setGoals] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [activeTab, setActiveTab] = useState('goals')
   const [message, setMessage] = useState('')
+  const [refreshKey, setRefreshKey] = useState(0)
 
   useEffect(() => {
     loadGoals()
-  }, [userId])
+  }, [userId, refreshKey])
 
   const loadGoals = async () => {
     try {
       setIsLoading(true)
+      console.log('Loading goals for user:', userId)
       const result = await GoalsService.getUserGoals(userId)
+      console.log('Goals API response:', result)
       if (result.success) {
+        console.log('Setting goals:', result.goals)
         setGoals(result.goals)
+      } else {
+        console.error('Failed to load goals:', result.error)
       }
     } catch (error) {
       console.error('Error loading goals:', error)
@@ -39,7 +49,7 @@ const GoalsDashboard = ({ userId }) => {
         setMessage('Goal created successfully!')
         setTimeout(() => setMessage(''), 3000)
         setShowCreateModal(false)
-        await loadGoals()
+        setRefreshKey(prev => prev + 1)
       } else {
         setMessage('Error creating goal: ' + result.error)
         setTimeout(() => setMessage(''), 5000)
@@ -54,11 +64,11 @@ const GoalsDashboard = ({ userId }) => {
   const handleUpdateGoal = async (goalId, updateData) => {
     try {
       const result = await GoalsService.updateGoal(goalId, updateData)
-      if (result.success) {
-        setMessage('Goal updated successfully!')
-        setTimeout(() => setMessage(''), 3000)
-        await loadGoals()
-      } else {
+        if (result.success) {
+          setMessage('Goal updated successfully!')
+          setTimeout(() => setMessage(''), 3000)
+          setRefreshKey(prev => prev + 1)
+        } else {
         setMessage('Error updating goal: ' + result.error)
         setTimeout(() => setMessage(''), 5000)
       }
@@ -76,7 +86,7 @@ const GoalsDashboard = ({ userId }) => {
         if (result.success) {
           setMessage('Goal deleted successfully!')
           setTimeout(() => setMessage(''), 3000)
-          await loadGoals()
+          setRefreshKey(prev => prev + 1)
         } else {
           setMessage('Error deleting goal: ' + result.error)
           setTimeout(() => setMessage(''), 5000)
@@ -91,11 +101,34 @@ const GoalsDashboard = ({ userId }) => {
 
   const handleAddTransaction = async (goalId, transactionData) => {
     try {
+      // Validate inputs
+      if (!goalId || !transactionData) {
+        setMessage('Error: Missing required data')
+        setTimeout(() => setMessage(''), 5000)
+        return
+      }
+      
+      if (typeof goalId !== 'number' && typeof goalId !== 'string') {
+        setMessage('Error: Invalid goal ID')
+        setTimeout(() => setMessage(''), 5000)
+        return
+      }
+      
+      if (typeof transactionData !== 'object' || transactionData === null) {
+        setMessage('Error: Invalid transaction data')
+        setTimeout(() => setMessage(''), 5000)
+        return
+      }
+      
+      console.log('Calling GoalsService.addGoalTransaction with:', { goalId, transactionData })
       const result = await GoalsService.addGoalTransaction(goalId, transactionData)
+      console.log('Transaction API response:', result)
       if (result.success) {
         setMessage('Transaction added successfully!')
         setTimeout(() => setMessage(''), 3000)
-        await loadGoals()
+        console.log('Reloading goals after successful transaction...')
+        // Force refresh by updating the refresh key
+        setRefreshKey(prev => prev + 1)
       } else {
         setMessage('Error adding transaction: ' + result.error)
         setTimeout(() => setMessage(''), 5000)
@@ -136,14 +169,60 @@ const GoalsDashboard = ({ userId }) => {
             <p className="text-gray-600">Track your financial objectives</p>
           </div>
         </div>
+        {activeTab === 'goals' && (
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl font-medium hover:from-indigo-600 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            <span>New Goal</span>
+          </button>
+        )}
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="flex space-x-1 mb-8 bg-gray-100 rounded-xl p-1">
         <button
-          onClick={() => setShowCreateModal(true)}
-          className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl font-medium hover:from-indigo-600 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+          onClick={() => setActiveTab('goals')}
+          className={`flex-1 py-3 px-6 rounded-lg font-medium transition-all duration-200 ${
+            activeTab === 'goals'
+              ? 'bg-white text-indigo-600 shadow-md'
+              : 'text-gray-600 hover:text-gray-800'
+          }`}
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-          <span>New Goal</span>
+          Goals
+        </button>
+        <button
+          onClick={() => setActiveTab('banking')}
+          className={`flex-1 py-3 px-6 rounded-lg font-medium transition-all duration-200 ${
+            activeTab === 'banking'
+              ? 'bg-white text-indigo-600 shadow-md'
+              : 'text-gray-600 hover:text-gray-800'
+          }`}
+        >
+          Banking
+        </button>
+        <button
+          onClick={() => setActiveTab('investments')}
+          className={`flex-1 py-3 px-6 rounded-lg font-medium transition-all duration-200 ${
+            activeTab === 'investments'
+              ? 'bg-white text-indigo-600 shadow-md'
+              : 'text-gray-600 hover:text-gray-800'
+          }`}
+        >
+          Investments
+        </button>
+        <button
+          onClick={() => setActiveTab('bills')}
+          className={`flex-1 py-3 px-6 rounded-lg font-medium transition-all duration-200 ${
+            activeTab === 'bills'
+              ? 'bg-white text-indigo-600 shadow-md'
+              : 'text-gray-600 hover:text-gray-800'
+          }`}
+        >
+          Bills
         </button>
       </div>
 
@@ -158,42 +237,61 @@ const GoalsDashboard = ({ userId }) => {
         </div>
       )}
 
-      {/* Goals Overview */}
-      {goals.length > 0 && (
-        <div className="mb-8">
-          <GoalsOverview goals={goals} />
-        </div>
+      {/* Tab Content */}
+      {activeTab === 'goals' && (
+        <>
+          {/* Goals Overview */}
+          {goals.length > 0 && (
+            <div className="mb-8">
+              <GoalsOverview goals={goals} />
+            </div>
+          )}
+
+          {/* Goals Grid */}
+          {goals.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="p-4 bg-gray-50 rounded-xl mb-6 inline-block">
+                <svg className="w-16 h-16 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">No Goals Yet</h3>
+              <p className="text-gray-600 mb-6">Create your first financial goal to start tracking your progress</p>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl font-medium hover:from-indigo-600 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              >
+                Create Your First Goal
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {goals.map((goal) => (
+                <GoalCard
+                  key={goal.id}
+                  goal={goal}
+                  onUpdate={handleUpdateGoal}
+                  onDelete={handleDeleteGoal}
+                  onAddTransaction={handleAddTransaction}
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
 
-      {/* Goals Grid */}
-      {goals.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="p-4 bg-gray-50 rounded-xl mb-6 inline-block">
-            <svg className="w-16 h-16 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No Goals Yet</h3>
-          <p className="text-gray-600 mb-6">Create your first financial goal to start tracking your progress</p>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl font-medium hover:from-indigo-600 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-          >
-            Create Your First Goal
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {goals.map((goal) => (
-            <GoalCard
-              key={goal.id}
-              goal={goal}
-              onUpdate={handleUpdateGoal}
-              onDelete={handleDeleteGoal}
-              onAddTransaction={handleAddTransaction}
-            />
-          ))}
-        </div>
+      {activeTab === 'banking' && (
+        <BankConnections userId={userId} onTransactionsImported={(transactions) => {
+          // Handle imported transactions
+        }} />
+      )}
+
+      {activeTab === 'investments' && (
+        <InvestmentTracker userId={userId} />
+      )}
+
+      {activeTab === 'bills' && (
+        <BillAutomation userId={userId} />
       )}
 
       {/* Create Goal Modal */}

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { GoalsService } from '../../services/goalsService'
 import GoalProgressChart from './GoalProgressChart'
 import GoalAnalytics from './GoalAnalytics'
+import SmartRecommendations from './SmartRecommendations'
+import PredictiveInsights from './PredictiveInsights'
 import AddTransactionModal from './AddTransactionModal'
 
 const GoalDetailView = ({ goal, onClose, onUpdate, onDelete, onAddTransaction }) => {
@@ -237,6 +239,12 @@ const GoalDetailView = ({ goal, onClose, onUpdate, onDelete, onAddTransaction })
 
           {/* Analytics */}
           <GoalAnalytics goal={goal} progressData={progressData} transactions={transactions} />
+
+          {/* Phase 3: Predictive Analytics */}
+          <div className="space-y-6">
+            <SmartRecommendations goal={goal} userId={goal.user_id} />
+            <PredictiveInsights goal={goal} userId={goal.user_id} />
+          </div>
 
           {/* Recent Transactions */}
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">

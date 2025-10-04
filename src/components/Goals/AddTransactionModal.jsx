@@ -52,6 +52,7 @@ const AddTransactionModal = ({ goal, onClose, onSubmit }) => {
       return
     }
 
+
     setIsSubmitting(true)
     try {
       await onSubmit(goal.id, {

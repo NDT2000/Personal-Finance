@@ -10,19 +10,24 @@ const PORT = 3001
 
 // Middleware
 app.use(cors())
-app.use(express.json())
 
-// Error handling middleware for JSON parsing
-app.use((error, req, res, next) => {
-  if (error instanceof SyntaxError && error.status === 400 && 'body' in error) {
-    console.error('JSON parsing error:', error.message);
-    return res.status(400).json({
-      success: false,
-      error: 'Invalid JSON format'
-    });
-  }
+// Log all requests for debugging
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  console.log('Headers:', req.headers);
   next();
-})
+});
+
+// Custom JSON parser with error handling
+app.use(express.json({ 
+  limit: '10mb',
+  verify: (req, res, buf, encoding) => {
+    req.rawBody = buf.toString();
+    console.log('Raw body received:', req.rawBody);
+  }
+}))
+
+app.use(express.urlencoded({ extended: true }))
 
 
 // Database configuration (working config from our test)
@@ -429,7 +434,23 @@ app.get('/api/dashboard/:userId', async (req, res) => {
 // ML Categorization endpoints
 app.post('/api/ml/categorize', async (req, res) => {
   try {
+    // Validate request body
+    if (!req.body || !req.body.descriptions) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing descriptions in request body'
+      });
+    }
+
     const { descriptions } = req.body;
+    
+    // Validate descriptions is an array
+    if (!Array.isArray(descriptions)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Descriptions must be an array'
+      });
+    }
     
     // Import ML service
     const { default: mlService } = await import('./src/services/mlService.js');
@@ -441,6 +462,7 @@ app.post('/api/ml/categorize', async (req, res) => {
       predictions: predictions
     });
   } catch (error) {
+    console.error('ML categorization error:', error);
     res.status(500).json({
       success: false,
       error: error.message
@@ -471,6 +493,23 @@ app.put('/api/transactions/:transactionId/ml', async (req, res) => {
   try {
     const { transactionId } = req.params;
     const { mlCategory, mlConfidence, isMLPredicted } = req.body;
+    
+    // Validate required fields
+    if (!mlCategory || mlConfidence === undefined || isMLPredicted === undefined) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: mlCategory, mlConfidence, isMLPredicted'
+      });
+    }
+    
+    // Validate transactionId is a number
+    if (!/^\d+$/.test(transactionId)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid transaction ID'
+      });
+    }
+    
     const connection = await mysql.createConnection(dbConfig);
     
     await connection.execute(
@@ -485,6 +524,7 @@ app.put('/api/transactions/:transactionId/ml', async (req, res) => {
       message: 'ML prediction updated successfully'
     });
   } catch (error) {
+    console.error('ML prediction update error:', error);
     res.status(500).json({
       success: false,
       error: error.message
@@ -544,6 +584,17 @@ app.get('/api/health', (req, res) => {
     success: true,
     message: 'API server is running',
     timestamp: new Date().toISOString()
+  })
+})
+
+// Test ML endpoint
+app.post('/api/ml/test', (req, res) => {
+  console.log('Test ML endpoint called');
+  console.log('Request body:', req.body);
+  res.json({
+    success: true,
+    message: 'ML test endpoint working',
+    receivedData: req.body
   })
 })
 
@@ -887,6 +938,15 @@ app.post('/api/goals/:goalId/transactions', async (req, res) => {
       
       await connection.commit()
       
+      console.log('Transaction committed successfully. Goal updated.')
+      
+      // Verify the goal was updated
+      const [updatedGoal] = await connection.execute(
+        'SELECT current_amount FROM goals WHERE id = ?',
+        [goalId]
+      )
+      console.log('Updated goal current_amount:', updatedGoal[0]?.current_amount)
+      
       res.json({
         success: true,
         transactionId: result.insertId,
@@ -960,6 +1020,32 @@ app.get('/api/goals/:goalId/progress', async (req, res) => {
   }
 })
 
+
+// Error handling middleware for JSON parsing (must be after all routes)
+app.use((error, req, res, next) => {
+  if (error instanceof SyntaxError && error.status === 400 && 'body' in error) {
+    console.error('JSON parsing error:', error.message);
+    console.error('Request URL:', req.url);
+    console.error('Request method:', req.method);
+    console.error('Request headers:', req.headers);
+    console.error('Request body that caused error:', req.body);
+    console.error('Raw body:', req.rawBody || 'No raw body');
+    return res.status(400).json({
+      success: false,
+      error: 'Invalid JSON format'
+    });
+  }
+  next(error);
+})
+
+// Global error handler
+app.use((error, req, res, next) => {
+  console.error('Global error handler:', error);
+  res.status(500).json({
+    success: false,
+    error: 'Internal server error'
+  });
+})
 
 app.listen(PORT, () => {
   console.log(`Database API server running on http://localhost:${PORT}`)

@@ -166,16 +166,34 @@ export class ApiService {
   // ML Categorization
   static async getMLCategorization(descriptions) {
     try {
+      // Validate input
+      if (!Array.isArray(descriptions)) {
+        return { success: false, error: 'Descriptions must be an array' }
+      }
+      
+      // Ensure all descriptions are strings
+      const validDescriptions = descriptions.filter(desc => typeof desc === 'string' && desc.trim().length > 0)
+      
+      if (validDescriptions.length === 0) {
+        return { success: false, error: 'No valid descriptions provided' }
+      }
+      
       const response = await fetch(`${API_BASE_URL}/ml/categorize`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ descriptions })
+        body: JSON.stringify({ descriptions: validDescriptions })
       })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
       const result = await response.json()
       return result
     } catch (error) {
+      console.error('ML categorization error:', error)
       return { success: false, error: error.message }
     }
   }

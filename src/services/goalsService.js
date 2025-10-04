@@ -5,7 +5,9 @@ export class GoalsService {
   // Get user's goals
   static async getUserGoals(userId) {
     try {
-      const response = await fetch(`${API_BASE_URL}/goals/${userId}`)
+      // Add timestamp to prevent caching
+      const timestamp = new Date().getTime()
+      const response = await fetch(`${API_BASE_URL}/goals/${userId}?t=${timestamp}`)
       const result = await response.json()
       return result
     } catch (error) {
@@ -70,6 +72,23 @@ export class GoalsService {
   // Add transaction to goal
   static async addGoalTransaction(goalId, transactionData) {
     try {
+      console.log('GoalsService.addGoalTransaction called with:')
+      console.log('goalId:', goalId, 'type:', typeof goalId)
+      console.log('transactionData:', transactionData, 'type:', typeof transactionData)
+      
+      // Validate inputs
+      if (!goalId || !transactionData) {
+        throw new Error('Missing goalId or transactionData')
+      }
+      
+      if (typeof goalId !== 'number' && typeof goalId !== 'string') {
+        throw new Error('goalId must be a number or string')
+      }
+      
+      if (typeof transactionData !== 'object' || transactionData === null) {
+        throw new Error('transactionData must be an object')
+      }
+      
       console.log('Sending transaction data:', transactionData)
       const response = await fetch(`${API_BASE_URL}/goals/${goalId}/transactions`, {
         method: 'POST',
