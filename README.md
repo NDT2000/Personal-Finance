@@ -186,7 +186,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-For support, email support@personalfinance.app or create an issue in the repository.
+For support, email officialworkrelated343@gmail.com or create an issue in the repository.
 
 ## 🔮 Roadmap
 
@@ -204,5 +204,6 @@ For support, email support@personalfinance.app or create an issue in the reposit
 - **v2.0.0**: Complete UI redesign and performance improvements
 
 ---
+
 
 **Built with ❤️ for better financial management**
