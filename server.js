@@ -488,6 +488,399 @@ app.get('/api/ml/info', async (req, res) => {
   }
 });
 
+// ===== REGRESSION API ENDPOINTS =====
+
+// Predict spending trends
+app.post('/api/regression/spending-trend', async (req, res) => {
+  try {
+    const { transactions, months = 6 } = req.body;
+    
+    if (!transactions || !Array.isArray(transactions)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Transactions array is required'
+      });
+    }
+
+    const { default: regressionService } = await import('./src/services/regressionService.js');
+    const prediction = regressionService.predictSpendingTrend(transactions, months);
+    
+    res.json({
+      success: true,
+      prediction
+    });
+  } catch (error) {
+    console.error('Spending trend prediction error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Predict income growth
+app.post('/api/regression/income-growth', async (req, res) => {
+  try {
+    const { incomeHistory, months = 12 } = req.body;
+    
+    if (!incomeHistory || !Array.isArray(incomeHistory)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Income history array is required'
+      });
+    }
+
+    const { default: regressionService } = await import('./src/services/regressionService.js');
+    const prediction = regressionService.predictIncomeGrowth(incomeHistory, months);
+    
+    res.json({
+      success: true,
+      prediction
+    });
+  } catch (error) {
+    console.error('Income growth prediction error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Predict savings capacity
+app.post('/api/regression/savings-capacity', async (req, res) => {
+  try {
+    const { incomeHistory, expenseHistory, months = 12 } = req.body;
+    
+    if (!incomeHistory || !expenseHistory || !Array.isArray(incomeHistory) || !Array.isArray(expenseHistory)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Income and expense history arrays are required'
+      });
+    }
+
+    const { default: regressionService } = await import('./src/services/regressionService.js');
+    const prediction = regressionService.predictSavingsCapacity(incomeHistory, expenseHistory, months);
+    
+    res.json({
+      success: true,
+      prediction
+    });
+  } catch (error) {
+    console.error('Savings capacity prediction error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Predict goal achievement timeline
+app.post('/api/regression/goal-timeline', async (req, res) => {
+  try {
+    const { goal, userProfile, historicalData } = req.body;
+    
+    if (!goal || !userProfile) {
+      return res.status(400).json({
+        success: false,
+        error: 'Goal and user profile are required'
+      });
+    }
+
+    const { default: regressionService } = await import('./src/services/regressionService.js');
+    const prediction = regressionService.predictGoalTimeline(goal, userProfile, historicalData);
+    
+    res.json({
+      success: true,
+      prediction
+    });
+  } catch (error) {
+    console.error('Goal timeline prediction error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Assess financial risk
+app.post('/api/regression/risk-assessment', async (req, res) => {
+  try {
+    const { userProfile, goals, marketConditions = {} } = req.body;
+    
+    if (!userProfile) {
+      return res.status(400).json({
+        success: false,
+        error: 'User profile is required'
+      });
+    }
+
+    const { default: regressionService } = await import('./src/services/regressionService.js');
+    const assessment = regressionService.assessFinancialRisk(userProfile, goals || [], marketConditions);
+    
+    res.json({
+      success: true,
+      assessment
+    });
+  } catch (error) {
+    console.error('Risk assessment error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Get comprehensive financial insights
+app.post('/api/regression/insights', async (req, res) => {
+  try {
+    const { 
+      transactions, 
+      incomeHistory, 
+      expenseHistory, 
+      goals = [], 
+      userProfile,
+      marketConditions = {}
+    } = req.body;
+    
+    if (!transactions || !incomeHistory || !expenseHistory || !userProfile) {
+      return res.status(400).json({
+        success: false,
+        error: 'Transactions, income history, expense history, and user profile are required'
+      });
+    }
+
+    const { default: regressionService } = await import('./src/services/regressionService.js');
+    
+    // Get all predictions
+    const spendingTrend = regressionService.predictSpendingTrend(transactions, 6);
+    const incomeGrowth = regressionService.predictIncomeGrowth(incomeHistory, 12);
+    const savingsCapacity = regressionService.predictSavingsCapacity(incomeHistory, expenseHistory, 12);
+    const riskAssessment = regressionService.assessFinancialRisk(userProfile, goals, marketConditions);
+    
+    // Predict goal timelines
+    const goalPredictions = goals.map(goal => ({
+      goalId: goal.id,
+      goalName: goal.name,
+      prediction: regressionService.predictGoalTimeline(goal, userProfile, {
+        incomeHistory,
+        expenseHistory,
+        transactions
+      })
+    }));
+    
+    res.json({
+      success: true,
+      insights: {
+        spendingTrend,
+        incomeGrowth,
+        savingsCapacity,
+        riskAssessment,
+        goalPredictions,
+        generatedAt: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    console.error('Comprehensive insights error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// ===== MODEL TRAINING API ENDPOINTS =====
+
+// Train models with sample data
+app.post('/api/training/train-sample', async (req, res) => {
+  try {
+    const { default: simpleModelTrainer } = await import('./src/services/simpleModelTrainer.js');
+    
+    const result = await simpleModelTrainer.trainWithSampleData();
+    
+    res.json({
+      success: true,
+      result: result
+    });
+  } catch (error) {
+    console.error('Sample training error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Train models with uploaded dataset
+app.post('/api/training/train-dataset', async (req, res) => {
+  try {
+    const { filePath, options = {} } = req.body;
+    
+    console.log('Training request received:', { filePath, options });
+    
+    if (!filePath) {
+      return res.status(400).json({
+        success: false,
+        error: 'File path is required'
+      });
+    }
+
+    // Check if file exists
+    const fs = await import('fs');
+    if (!fs.existsSync(filePath)) {
+      return res.status(400).json({
+        success: false,
+        error: `File not found: ${filePath}. Please ensure the file exists.`
+      });
+    }
+
+    const { default: modelTrainer } = await import('./src/services/modelTrainer.js');
+    
+    console.log('Starting dataset training...');
+    const result = await modelTrainer.loadAndTrainFromKaggle(filePath, options);
+    console.log('Dataset training completed successfully');
+    
+    res.json({
+      success: true,
+      result: result
+    });
+  } catch (error) {
+    console.error('Dataset training error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      details: error.stack
+    });
+  }
+});
+
+// Get trained model
+app.get('/api/training/model/:target', async (req, res) => {
+  try {
+    const { target } = req.params;
+    
+    const { default: modelTrainer } = await import('./src/services/modelTrainer.js');
+    
+    const model = modelTrainer.getTrainedModel(target);
+    const metrics = modelTrainer.getModelMetrics(target);
+    
+    if (!model) {
+      return res.status(404).json({
+        success: false,
+        error: `No trained model found for target: ${target}`
+      });
+    }
+    
+    res.json({
+      success: true,
+      model: model,
+      metrics: metrics
+    });
+  } catch (error) {
+    console.error('Get model error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Get training history
+app.get('/api/training/history', async (req, res) => {
+  try {
+    const { default: modelTrainer } = await import('./src/services/modelTrainer.js');
+    
+    const history = modelTrainer.getTrainingHistory();
+    
+    res.json({
+      success: true,
+      history: history
+    });
+  } catch (error) {
+    console.error('Get training history error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Export trained models
+app.get('/api/training/export', async (req, res) => {
+  try {
+    const { default: modelTrainer } = await import('./src/services/modelTrainer.js');
+    
+    const exportedModels = modelTrainer.exportModels();
+    
+    res.json({
+      success: true,
+      models: exportedModels
+    });
+  } catch (error) {
+    console.error('Export models error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Clear all trained models
+app.delete('/api/training/clear', async (req, res) => {
+  try {
+    const { default: modelTrainer } = await import('./src/services/modelTrainer.js');
+    
+    modelTrainer.clearModels();
+    
+    res.json({
+      success: true,
+      message: 'All trained models cleared successfully'
+    });
+  } catch (error) {
+    console.error('Clear models error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Upload and process Kaggle dataset
+app.post('/api/training/upload-dataset', async (req, res) => {
+  try {
+    const { filePath, options = {} } = req.body;
+    
+    if (!filePath) {
+      return res.status(400).json({
+        success: false,
+        error: 'File path is required'
+      });
+    }
+
+    const { default: datasetLoader } = await import('./src/services/datasetLoader.js');
+    
+    // Load and process dataset
+    const dataset = await datasetLoader.loadAndProcessDataset(filePath, options);
+    const stats = datasetLoader.getDatasetStats(dataset.trainData);
+    
+    res.json({
+      success: true,
+      dataset: {
+        trainSize: dataset.trainData.features.length,
+        testSize: dataset.testData.features.length,
+        featureCount: stats.featureCount,
+        targetCount: stats.targetCount
+      },
+      stats: stats
+    });
+  } catch (error) {
+    console.error('Upload dataset error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // Update transaction with ML prediction
 app.put('/api/transactions/:transactionId/ml', async (req, res) => {
   try {
