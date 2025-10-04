@@ -5,8 +5,10 @@ import SpendingCategoriesChart from '../components/Charts/SpendingCategoriesChar
 import MonthlyTrendsChart from '../components/Charts/MonthlyTrendsChart'
 import FinancialSummary from '../components/Charts/FinancialSummary'
 import IncomeInsights from '../components/Charts/IncomeInsights'
-import MLTestComponent from '../components/MLTestComponent'
+import MLInsights from '../components/MLInsights'
+import SimpleMLTest from '../components/SimpleMLTest'
 import GoalsDashboard from '../components/Goals/GoalsDashboard'
+import PerformanceDashboard from '../components/PerformanceDashboard'
 
 const Dashboard = () => {
   const navigate = useNavigate()
@@ -203,9 +205,19 @@ const Dashboard = () => {
           <GoalsDashboard userId={user.id} />
         </div>
 
-        {/* ML Testing Section */}
+              {/* AI Insights Section */}
+              <div className="mb-8">
+                <MLInsights />
+              </div>
+
+              {/* AI Testing Section */}
+              <div className="mb-8">
+                <SimpleMLTest />
+              </div>
+
+        {/* Performance Dashboard */}
         <div className="mb-8">
-          <MLTestComponent />
+          <PerformanceDashboard />
         </div>
 
         {/* Charts Section */}
