@@ -2,6 +2,9 @@
 
 A comprehensive React-based personal finance application with intelligent machine learning capabilities for transaction categorization, financial predictions, and goal tracking.
 
+<img width="1919" height="999" alt="image" src="https://github.com/user-attachments/assets/ca6ffa58-98b2-4ef2-a3f6-e0bce538783e" />
+
+
 ## 🚀 Features
 
 ### 💰 Financial Management
@@ -207,3 +210,4 @@ For support, email officialworkrelated343@gmail.com or create an issue in the re
 
 
 **Built with ❤️ for better financial management**
+
