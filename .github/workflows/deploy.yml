@@ -2,33 +2,30 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Build
-      run: npm run build
-      
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      if: github.ref == 'refs/heads/main'
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./dist
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Ensure gh-pages branch exists
+        run: |
+          git fetch origin gh-pages:gh-pages || echo 'gh-pages branch does not exist, creating it.';
+          git checkout gh-pages;
+          git push origin gh-pages
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GH_PAT }}
+          publish_dir: ./public
+
+      - name: Set permissions
+        run: |
+          echo "Setting permissions for GitHub Actions to write to gh-pages branch."
+          echo 'permissions:
+              contents: write' >> $GITHUB_ENV
