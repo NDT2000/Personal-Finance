@@ -29,3 +29,14 @@ jobs:
           echo "Setting permissions for GitHub Actions to write to gh-pages branch."
           echo 'permissions:
               contents: write' >> $GITHUB_ENV
+      - name: Ensure gh-pages branch exists
+        run: |
+          if ! git ls-remote --exit-code --heads origin gh-pages; then
+            git checkout --orphan gh-pages
+            git rm -rf .
+            touch .nojekyll
+            git add .nojekyll
+            git commit -m "Initialize gh-pages branch"
+            git push origin gh-pages
+            git checkout main
+          fi
