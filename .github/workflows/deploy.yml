@@ -14,9 +14,15 @@ jobs:
 
       - name: Ensure gh-pages branch exists
         run: |
-          git fetch origin gh-pages:gh-pages || echo 'gh-pages branch does not exist, creating it.';
-          git checkout gh-pages;
-          git push origin gh-pages
+          if ! git ls-remote --exit-code --heads origin gh-pages; then
+            git checkout --orphan gh-pages
+            git rm -rf .
+            touch .nojekyll
+            git add .nojekyll
+            git commit -m "Initialize gh-pages branch"
+            git push origin gh-pages
+            git checkout main
+          fi
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
@@ -29,14 +35,4 @@ jobs:
           echo "Setting permissions for GitHub Actions to write to gh-pages branch."
           echo 'permissions:
               contents: write' >> $GITHUB_ENV
-      - name: Ensure gh-pages branch exists
-        run: |
-          if ! git ls-remote --exit-code --heads origin gh-pages; then
-            git checkout --orphan gh-pages
-            git rm -rf .
-            touch .nojekyll
-            git add .nojekyll
-            git commit -m "Initialize gh-pages branch"
-            git push origin gh-pages
-            git checkout main
-          fi
+          
