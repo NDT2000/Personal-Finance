@@ -1,9 +1,68 @@
 // API service for database operations through backend
-const API_BASE_URL = 'http://localhost:3001/api'
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://your-backend-url.com/api' // Replace with your actual backend URL
+  : 'http://localhost:3001/api'
+
+// Check if we're in a browser environment and if backend is available
+const isBackendAvailable = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/test-db`, { 
+      method: 'GET',
+      signal: AbortSignal.timeout(3000) // 3 second timeout
+    })
+    return response.ok
+  } catch (error) {
+    console.warn('Backend not available, using local storage fallback:', error.message)
+    return false
+  }
+}
+
+// Local storage fallback methods
+const LocalStorageService = {
+  getUsers: () => {
+    const users = localStorage.getItem('finance_users')
+    return users ? JSON.parse(users) : []
+  },
+  
+  saveUsers: (users) => {
+    localStorage.setItem('finance_users', JSON.stringify(users))
+  },
+  
+  getCurrentUser: () => {
+    return JSON.parse(localStorage.getItem('currentUser') || 'null')
+  },
+  
+  setCurrentUser: (user) => {
+    localStorage.setItem('currentUser', JSON.stringify(user))
+  },
+  
+  getAccounts: (userId) => {
+    const accounts = localStorage.getItem(`finance_accounts_${userId}`)
+    return accounts ? JSON.parse(accounts) : []
+  },
+  
+  saveAccounts: (userId, accounts) => {
+    localStorage.setItem(`finance_accounts_${userId}`, JSON.stringify(accounts))
+  },
+  
+  getTransactions: (accountId) => {
+    const transactions = localStorage.getItem(`finance_transactions_${accountId}`)
+    return transactions ? JSON.parse(transactions) : []
+  },
+  
+  saveTransactions: (accountId, transactions) => {
+    localStorage.setItem(`finance_transactions_${accountId}`, JSON.stringify(transactions))
+  }
+}
 
 export class ApiService {
   static async testDatabase() {
     try {
+      const backendAvailable = await isBackendAvailable()
+      if (!backendAvailable) {
+        return { success: true, message: 'Using local storage fallback' }
+      }
+      
       const response = await fetch(`${API_BASE_URL}/test-db`)
       const result = await response.json()
       return result
@@ -14,6 +73,13 @@ export class ApiService {
 
   static async syncUserToDatabase(userData) {
     try {
+      const backendAvailable = await isBackendAvailable()
+      if (!backendAvailable) {
+        // Use localStorage fallback
+        LocalStorageService.setCurrentUser(userData)
+        return { success: true, message: 'User synced to local storage' }
+      }
+      
       const response = await fetch(`${API_BASE_URL}/sync-user`, {
         method: 'POST',
         headers: {
@@ -30,6 +96,27 @@ export class ApiService {
 
   static async authenticateUser(email, password) {
     try {
+      const backendAvailable = await isBackendAvailable()
+      if (!backendAvailable) {
+        // Use localStorage fallback for demo purposes
+        const users = LocalStorageService.getUsers()
+        const user = users.find(u => u.email === email)
+        
+        if (user && user.password === password) {
+          return { 
+            success: true, 
+            user: { 
+              id: user.id, 
+              firstName: user.firstName, 
+              lastName: user.lastName, 
+              email: user.email 
+            } 
+          }
+        } else {
+          return { success: false, error: 'Invalid credentials' }
+        }
+      }
+      
       const response = await fetch(`${API_BASE_URL}/auth`, {
         method: 'POST',
         headers: {

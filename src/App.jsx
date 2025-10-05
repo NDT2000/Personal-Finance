@@ -7,6 +7,7 @@ import Profile from './pages/Profile'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import ErrorBoundary from './components/ErrorBoundary'
+import './services/demoData' // Initialize demo data for localStorage fallback
 
 function App() {
   return (
